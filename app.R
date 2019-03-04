@@ -21,7 +21,7 @@ df <- read.csv("merged_data.csv")
 # Data Wrangle 
 df$gold_medal <- as.numeric(df$Medal == "Gold")
 df$silver_medal <- as.numeric(df$Medal == "Silver")
-df$silver_bronze <- as.numeric(df$Medal == "Bronze")
+df$bronze_medal <- as.numeric(df$Medal == "Bronze")
 df$a_medal <- 1
 
 # Read country border geojson file
@@ -147,7 +147,9 @@ server <- function(input, output) {
     df_calc <- filtered_df %>%
       group_by(alpha_3) %>%
       summarize(total_medal = sum(a_medal),
-                gold_medals = sum(gold_medal))
+                gold_medals = sum(gold_medal),
+                silver_medals = sum(silver_medal),
+                bronze_medals = sum(bronze_medal))
     
     # Merge data frame with SpatiaPolygonsDataFrame
     merged_spdf <- merge(borders, df_calc, by.x = "iso_a3", by.y = "alpha_3")
@@ -175,8 +177,10 @@ server <- function(input, output) {
                data = merged_spdf,
                fillColor = ~ mypal(medal_per_pop),
                fillOpacity = .5,
-               popup = paste0("Won ", as.character(merged_spdf$total_medal), " total medals! <br> -", 
-                              as.character(merged_spdf$gold_medals), "gold medals")) %>%
+               popup = paste0(merged_spdf$name, " won ", as.character(merged_spdf$total_medal), " total medals! <br> - ", 
+                              as.character(merged_spdf$gold_medals), " gold medals <br> - ", 
+                              as.character(merged_spdf$silver_medals), " silver medals <br> - ",
+                              as.character(merged_spdf$bronze_medals), " bronze medals")) %>%
              leaflet::addLegend(
                pal = mypal, values = merged_spdf$medal_per_pop, opacity = 0.7, title = "Total Medals per 1M Persons",
                position = "bottomleft"
