@@ -1,0 +1,12 @@
+name: leaflet_shiny_olympic_medals
+title: leaflet_shiny_olympic_medals
+username:
+account: jasonminsookim
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 758976
+bundleId: 1912897
+url: https://jasonminsookim.shinyapps.io/leaflet_shiny_olympic_medals/
+when: 1551661087.51368
+asMultiple: FALSE
+asStatic: FALSE
