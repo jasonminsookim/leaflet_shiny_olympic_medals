@@ -85,12 +85,19 @@ ui <- dashboardPage(
               min = 1896, max = 2014,
               value = c(1896, 2014)
             ),
-            
+
             checkboxGroupInput(
               inputId = "season_f",
               label = "Games Season:",
               choices = c("Summer", "Winter"),
               selected = c("Summer", "Winter")
+            ),
+
+            selectizeInput(
+              inputId = "sport_f",
+              label = "Sport Filter:",
+              multiple = TRUE,
+              choices = NULL
             )
           ),
           width = "100%",
@@ -111,20 +118,22 @@ ui <- dashboardPage(
 )
 
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   rv <- reactiveValues(f_df = NULL)
 
   # Filter by year
   observeEvent(input$year_f, {
 
+    filtered_df <- rv$f_df
+    
     # Filter by year slider
-    filtered_df <- df[df$Year >= input$year_f[1] & df$Year <= input$year_f[2], ]
+    filtered_df <- filtered_df[filtered_df$Year >= input$year_f[1] & filtered_df$Year <= input$year_f[2], ]
 
     # Store value in rv
     rv$f_df <- filtered_df
   })
-  
-  
+
+
 
   # Filter by Medal Type
   observeEvent(input$medal_type_f, {
@@ -140,23 +149,61 @@ server <- function(input, output) {
       rv$f_df <- filtered_df
     }
   }, ignoreNULL = FALSE)
-  
-  
-  # Filter by Medal Type
+
+
+  # Filter by Season
   observeEvent(input$season_f, {
     if (is.null(input$season_f)) {
       no_medal_df <- rv$f_df
       no_medal_df$a_medal <- NA
       rv$f_df <- no_medal_df
     }
-    
+
     else {
       filtered_df <- rv$f_df
       filtered_df <- filter(df, str_detect(Season, paste(input$season_f, collapse = "|")))
       rv$f_df <- filtered_df
+
+      updateSelectizeInput(session, "sport_f", choices = unique(filtered_df$Sport), server = TRUE)
     }
   }, ignoreNULL = FALSE)
-  
+
+  # Filter by Sport
+  observeEvent(input$sport_f, {
+
+    # If no sport is chosen, choose all of them
+    if (is.null(input$sport_f)) {
+      filtered_df <- df
+      filtered_df <- filtered_df[filtered_df$Year >= input$year_f[1] & filtered_df$Year <= input$year_f[2], ]
+
+      if (is.null(input$medal_type_f)) {
+        no_medal_df <- filtered_df
+        no_medal_df$a_medal <- NA
+        filtered_df <- no_medal_df
+      }
+
+      else {
+        filtered_df <- filter(filtered_df, str_detect(Medal, paste(input$medal_type_f, collapse = "|")))
+      }
+
+      if (is.null(input$season_f)) {
+        filtered_df$a_medal <- NA
+      }
+
+      else {
+        filtered_df <- filter(df, str_detect(Season, paste(input$season_f, collapse = "|")))
+      }
+    }
+
+    else {
+      filtered_df <- rv$f_df
+      filtered_df <- filter(df, str_detect(Sport, paste(input$sport_f, collapse = "|")))
+    }
+    rv$f_df <- filtered_df
+  },
+  ignoreNULL = FALSE
+  )
+
 
   # create the map to be rendered in the ui
   output$map <- renderLeaflet({
@@ -200,17 +247,23 @@ server <- function(input, output) {
       setView(lat = 30, lng = 0, zoom = 3) %>%
       addPolygons(
         data = merged_spdf,
+        color = "black",
+        weight = 1,
         fillColor = ~ mypal(medal_per_pop),
         fillOpacity = .5,
         popup = paste0(
-          merged_spdf$name, " won ", as.character(merged_spdf$total_medal), " total medals! <br> - ",
+          "<b>",
+          merged_spdf$name, "</b> won ", as.character(merged_spdf$total_medal),
+          " total medals with a population of ",
+          prettyNum(merged_spdf$pop_est, big.mark = ",", scientific = FALSE),
+          "! <br><br> - ",
           as.character(merged_spdf$gold_medals), " gold medals <br> - ",
           as.character(merged_spdf$silver_medals), " silver medals <br> - ",
           as.character(merged_spdf$bronze_medals), " bronze medals"
         )
       ) %>%
       leaflet::addLegend(
-        pal = mypal, values = merged_spdf$medal_per_pop, opacity = 0.7, title = "Total Medals per 1M Persons",
+        pal = mypal, values = merged_spdf$medal_per_pop, opacity = 0.7, title = "Medals per 1M Persons",
         position = "bottomleft"
       ))
   })

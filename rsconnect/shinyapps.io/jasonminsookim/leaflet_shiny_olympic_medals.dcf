@@ -5,8 +5,8 @@ account: jasonminsookim
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 758976
-bundleId: 1919534
+bundleId: 1919691
 url: https://jasonminsookim.shinyapps.io/leaflet_shiny_olympic_medals/
-when: 1551873844.88753
+when: 1551878448.18262
 asMultiple: FALSE
 asStatic: FALSE
