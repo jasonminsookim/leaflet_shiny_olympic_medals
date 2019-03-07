@@ -11,12 +11,12 @@ library(sp)
 library(magrittr)
 library(htmltools)
 
+# Uncomment this section to set directory (Keep commented when you publish)
 # app_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
-# Set wd
 # setwd(app_dir)
 
 # Load df
-df <- read.csv("merged_data.csv")
+df <- read.csv("data/processed/merged_data.csv")
 
 # Data Wrangle
 df$gold_medal <- as.numeric(df$Medal == "Gold")
@@ -25,7 +25,7 @@ df$bronze_medal <- as.numeric(df$Medal == "Bronze")
 df$a_medal <- 1
 
 # Read country border geojson file
-borders <- geojsonio::geojson_read("countries_small.geojson", what = "sp")
+borders <- geojsonio::geojson_read("data/raw/countries_small.geojson", what = "sp")
 
 ui <- dashboardPage(
   title = "Choropleth Maps: Olympic Medals",
