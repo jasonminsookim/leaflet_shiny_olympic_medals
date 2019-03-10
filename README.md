@@ -1,5 +1,6 @@
 ## The Shiny app displays dynamic chorpleth maps for Olympic Medal winners using a variety of filters. 
 
+### Filters
 >- Medal Type: Bronze, Silver, Gold
 >- Season: Winter, Gold
 >- Year Range: 1896-2014
